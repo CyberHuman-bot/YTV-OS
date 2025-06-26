@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YTV OS App Store</title>
+
+<style>
+    /* ——— Base UI ——— */
+    body{
+        font-family:Arial, sans-serif;
+        background:#181818;
+        color:#fff;
+        margin:0;
+        padding:0;
+    }
+    header{
+        background:#232323;
+        padding:20px;
+        text-align:center;
+        font-size:2em;
+        letter-spacing:2px;
+    }
+
+    /* ——— Grid & cards ——— */
+    .app-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:24px;
+        padding:32px;
+        max-width:1200px;
+        margin:0 auto;
+    }
+    .app-card{
+        background:#242424;
+        border-radius:12px;
+        box-shadow:0 2px 8px rgba(0,0,0,.2);
+        padding:20px;
+        text-align:center;
+        transition:transform .2s;
+    }
+    .app-card:hover{transform:translateY(-5px) scale(1.03);}
+
+    /* ——— Icons & text ——— */
+    .app-icon{
+        width:64px;height:64px;
+        margin-bottom:16px;
+        border-radius:12px;
+        background:#333;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        font-size:2em;          /* big enough for emoji */
+        line-height:1;
+    }
+    .app-icon img{              /* when it *is* an <img> */
+        width:100%;height:100%;
+        border-radius:inherit;
+        object-fit:cover;
+    }
+    .app-title{font-size:1.2em;margin-bottom:8px;font-weight:bold;}
+    .app-desc{font-size:.95em;color:#bbb;margin-bottom:16px;}
+
+    /* ——— Button ——— */
+    .install-btn{
+        background:#1db954;color:#fff;
+        border:none;border-radius:6px;
+        padding:10px 24px;
+        font-size:1em;cursor:pointer;
+        transition:background .2s;
+    }
+    .install-btn:hover{background:#17a44a;}
+</style>
+</head>
+<body>
+
+<header>YTV OS App Store</header>
+<a href="home.html" style="position:absolute;top:25px;right:20px;color:#fff;text-decoration:none;font-size:1.2em;">
+    Back to Home
+</a>
+
+<script>
+const apps = [
+  {
+    id: "ytv-browser",
+    icon: "tvb.png",
+    title: "YTV Browser",
+    desc: "A fast and secure web browser for YTV OS.",
+    url: "tvb.html"
+  },
+  {
+    id: "ytv-music",
+    icon: "tvm.png",
+    title: "YTV Music",
+    desc: "Listen to your favorite music on YTV OS.",
+    url: "tvm.html"
+  },
+  {
+    id: "ytv-video",
+    icon: "tvv.png",
+    title: "YTV Video Player",
+    desc: "Watch videos seamlessly on YTV OS.",
+    url: "tvv.html"
+  }
+];
+
+
+window.addEventListener('DOMContentLoaded', () => {
+    const grid = document.createElement('div');
+    grid.className = 'app-grid';
+
+    const installed = JSON.parse(localStorage.getItem('ytv_installed_apps') || '[]');
+
+    apps.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+
+        const isInstalled = installed.includes(app.id);
+
+        const isImage = /\.(png|jpe?g|webp|gif|svg)$/i.test(app.icon);
+        const iconHTML = isImage
+            ? `<span class="app-icon"><img src="${app.icon}" alt="${app.title} icon"></span>`
+            : `<span class="app-icon">${app.icon}</span>`;
+
+        const buttonHTML = isInstalled
+            ? `<button class="install-btn" onclick="uninstallApp('${app.id}')">Uninstall</button>`
+            : `<button class="install-btn" onclick="installApp('${app.id}')">Install</button>`;
+
+        card.innerHTML = `
+            ${iconHTML}
+            <div class="app-title">${app.title}</div>
+            <div class="app-desc">${app.desc}</div>
+            ${buttonHTML}
+        `;
+        grid.appendChild(card);
+    });
+
+    document.body.appendChild(grid);
+});
+
+function installApp(appId) {
+  let installed = JSON.parse(localStorage.getItem('ytv_installed_apps') || '[]');
+  let appData = JSON.parse(localStorage.getItem('ytv_installed_data') || '{}');
+
+  const app = apps.find(a => a.id === appId);
+  if (!app) return alert("❌ App not found!");
+
+  if (!installed.includes(appId)) {
+    installed.push(appId);
+    localStorage.setItem('ytv_installed_apps', JSON.stringify(installed));
+
+    appData[appId] = app;
+    localStorage.setItem('ytv_installed_data', JSON.stringify(appData));
+
+    alert("✅ App installed!");
+  } else {
+    alert("ℹ️ App is already installed.");
+  }
+}
+
+
+function uninstallApp(appId){
+    let installed = JSON.parse(localStorage.getItem('ytv_installed_apps') || '[]');
+    if (installed.includes(appId)) {
+        installed = installed.filter(id => id !== appId);
+        localStorage.setItem('ytv_installed_apps', JSON.stringify(installed));
+        alert("🗑️ App uninstalled.");
+        location.reload();
+    } else {
+        alert("⚠️ App is not installed.");
+    }
+}
+</script>
+
+
+</body>
+</html>
