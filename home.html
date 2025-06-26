@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YTV OS Launcher - TV Mode</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(230deg, #020024 0%, #090979 35%, #00d4ff 100%);
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #time {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 32px;
+      background-color: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      padding: 8px 16px;
+      z-index: 100;
+    }
+
+    .appchoose {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 40px;
+      padding: 80px;
+      justify-items: center;
+      align-items: center;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .appchoose.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .appchoose a {
+      display: block;
+      outline: none;
+      border-radius: 20px;
+      padding: 10px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .appchoose a img {
+      width: 140px;
+      height: auto;
+      border-radius: 20px;
+      border: 3px solid #888;
+      transition: 0.3s ease;
+    }
+
+    .appchoose a:focus img {
+      transform: scale(1.2);
+      border-color: #00d4ff;
+      box-shadow: 0 0 16px #00d4ff;
+    }
+
+    @media (max-width: 768px) {
+      .appchoose {
+        padding: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 20px;
+      }
+
+      .appchoose a img {
+        width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="time"></div>
+
+  <div class="appchoose" id="appContainer">
+    <!-- Predefined Apps -->
+    <a href="https://www.youtube.com/" tabindex="1"><img src="yt.png" alt="YouTube"></a>
+    <a href="https://www.mytvplus.net/" tabindex="2"><img src="mytv.jpg" alt="MyTV+"></a>
+    <a href="https://tv.youtube.com/welcome/" tabindex="3"><img src="ytv.jpg" alt="YouTube TV"></a>
+    <a href="appstore.html" tabindex="4"><img src="YTV-Apps.png" alt="YTV Apps"></a>
+  </div>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('time').innerText = `${hours}:${minutes}`;
+    }
+
+    function loadInstalledApps() {
+      const container = document.getElementById("appContainer");
+      const installed = JSON.parse(localStorage.getItem('ytv_installed_apps') || '[]');
+      const appData = JSON.parse(localStorage.getItem('ytv_installed_data') || '{}');
+
+      installed.forEach((appId, i) => {
+        const app = appData[appId];
+        if (app) {
+          const a = document.createElement("a");
+          a.href = app.url;
+          a.tabIndex = 5 + i;
+          const img = document.createElement("img");
+          img.src = app.icon;
+          img.alt = app.title;
+          a.appendChild(img);
+          container.appendChild(a);
+        }
+      });
+    }
+
+    function showLauncher() {
+      document.getElementById('appContainer').classList.add('show');
+
+      const first = document.querySelector(".appchoose a");
+      if (first) first.focus();
+    }
+
+    // D-pad navigation logic
+    function setupTVNavigation() {
+      const apps = Array.from(document.querySelectorAll('.appchoose a'));
+      const cols = Math.floor(window.innerWidth / 180);
+
+      document.addEventListener('keydown', (e) => {
+        const focused = document.activeElement;
+        const index = apps.indexOf(focused);
+
+        if (index !== -1) {
+          let next;
+          switch (e.key) {
+            case "ArrowRight":
+              next = apps[index + 1]; break;
+            case "ArrowLeft":
+              next = apps[index - 1]; break;
+            case "ArrowDown":
+              next = apps[index + cols]; break;
+            case "ArrowUp":
+              next = apps[index - cols]; break;
+            case "Enter":
+              focused.click(); return;
+          }
+
+          if (next) {
+            e.preventDefault();
+            next.focus();
+          }
+        }
+      });
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+    loadInstalledApps();
+
+    // Show on interaction (TV remote or touch)
+    ['keydown', 'click', 'touchstart', 'mousemove'].forEach(evt =>
+      document.addEventListener(evt, showLauncher, { once: true })
+    );
+
+    // Setup navigation once launcher is shown
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(setupTVNavigation, 100); // delay to wait for dynamic apps
+    });
+  </script>
+</body>
+</html>

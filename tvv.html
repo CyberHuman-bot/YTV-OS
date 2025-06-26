@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube-style Video Browser</title>
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #181818;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 240px;
+      background-color: #202020;
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #sidebar a {
+      color: #b3b3b3;
+      padding: 12px 20px;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    #sidebar a:hover, #sidebar a.active {
+      background-color: #383838;
+      color: white;
+    }
+
+    /* Main content */
+    #main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    #header {
+      height: 56px;
+      background-color: #202020;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      border-bottom: 1px solid #303030;
+    }
+
+    #logo {
+      font-weight: bold;
+      font-size: 22px;
+      color: #ff0000;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #search-bar {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      background-color: #121212;
+      border-radius: 2px;
+      height: 36px;
+      overflow: hidden;
+    }
+
+    #search-bar input {
+      flex-grow: 1;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 16px;
+      padding: 0 12px;
+      outline: none;
+    }
+
+    #search-bar button {
+      background-color: #303030;
+      border: none;
+      color: white;
+      width: 64px;
+      height: 100%;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    #search-bar button:hover {
+      background-color: #505050;
+    }
+
+    /* Content area */
+    #content {
+      display: flex;
+      height: calc(100vh - 56px);
+      overflow: hidden;
+    }
+
+    /* Video list */
+    #video-list {
+      flex-basis: 400px;
+      background-color: #181818;
+      overflow-y: auto;
+      padding: 16px;
+      border-right: 1px solid #303030;
+    }
+
+    .video-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+
+    .video-item:hover {
+      background-color: #2a2a2a;
+      border-radius: 4px;
+    }
+
+    .video-thumb {
+      width: 160px;
+      height: 90px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .video-info {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #ccc;
+    }
+
+    .video-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      color: white;
+    }
+
+    .video-channel {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* Video player */
+    #player-area {
+      flex-grow: 1;
+      background-color: black;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    #player {
+      position: relative;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      background-color: black;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #player iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #video-title-player {
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+    }
+
+    /* Scrollbar styling */
+    #video-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #video-list::-webkit-scrollbar-thumb {
+      background-color: #555;
+      border-radius: 4px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <a class="active" data-category="trending">Home</a>
+    <a data-category="music">Music</a>
+    <a data-category="gaming">Gaming</a>
+    <a data-category="news">News</a>
+    <a data-category="sports">Sports</a>
+  </div>
+
+  <div id="main">
+    <div id="header">
+      <div id="logo" onclick="resetSearch()">MyTube</div>
+      <div id="search-bar">
+        <input id="search-input" type="text" placeholder="Search" />
+        <button id="search-button">🔍</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <div id="video-list">
+        <!-- Video thumbnails & titles go here -->
+      </div>
+
+      <div id="player-area">
+        <div id="player">
+          <iframe src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div id="video-title-player"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const apiKey = 'AIzaSyBTJ84KTIpHa0FAAOJGcOJzIm0lydl18xs'; // Replace with your API key
+  const videoList = document.getElementById('video-list');
+  const playerIframe = document.querySelector('#player iframe');
+  const videoTitlePlayer = document.getElementById('video-title-player');
+  const searchInput = document.getElementById('search-input');
+  const searchButton = document.getElementById('search-button');
+  const sidebarLinks = document.querySelectorAll('#sidebar a');
+  const logo = document.getElementById('logo');
+
+  // Current search or category
+  let currentQuery = 'trending';
+
+  function fetchVideos(query) {
+    // Clear player & list while loading
+    videoList.innerHTML = '<p>Loading...</p>';
+    playerIframe.src = '';
+    videoTitlePlayer.textContent = '';
+
+    // Prepare API URL
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&type=video&safeSearch=strict&q=${encodeURIComponent(query)}&key=${apiKey}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if(!data.items) {
+          videoList.innerHTML = '<p>No results found.</p>';
+          return;
+        }
+        videoList.innerHTML = '';
+
+        data.items.forEach(item => {
+          const videoId = item.id.videoId;
+          const snippet = item.snippet;
+
+          const videoEl = document.createElement('div');
+          videoEl.classList.add('video-item');
+          videoEl.innerHTML = `
+            <div class="video-thumb" style="background-image: url('${snippet.thumbnails.medium.url}')"></div>
+            <div class="video-info">
+              <div class="video-title">${snippet.title}</div>
+              <div class="video-channel">${snippet.channelTitle}</div>
+            </div>
+          `;
+          videoEl.onclick = () => playVideo(videoId, snippet.title);
+          videoList.appendChild(videoEl);
+        });
+
+        // Autoplay first video if exists
+        if(data.items.length > 0) {
+          playVideo(data.items[0].id.videoId, data.items[0].snippet.title);
+        }
+      })
+      .catch(err => {
+        videoList.innerHTML = `<p style="color:#f55;">Error loading videos.</p>`;
+        console.error(err);
+      });
+  }
+
+  function playVideo(videoId, title) {
+    playerIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    videoTitlePlayer.textContent = title;
+  }
+
+  // Search event
+  searchButton.onclick = () => {
+    const val = searchInput.value.trim();
+    if(val) {
+      currentQuery = val;
+      fetchVideos(val);
+    }
+  };
+
+  searchInput.addEventListener('keypress', e => {
+    if(e.key === 'Enter') searchButton.onclick();
+  });
+
+  // Sidebar nav
+  sidebarLinks.forEach(link => {
+    link.onclick = () => {
+      sidebarLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      currentQuery = link.getAttribute('data-category');
+      searchInput.value = '';
+      fetchVideos(currentQuery);
+    };
+  });
+
+  // Reset search by clicking logo
+  function resetSearch() {
+    searchInput.value = '';
+    sidebarLinks.forEach(l => l.classList.remove('active'));
+    sidebarLinks[0].classList.add('active');
+    currentQuery = 'trending';
+    fetchVideos(currentQuery);
+  }
+
+  logo.onclick = resetSearch;
+
+  // Initial load
+  fetchVideos(currentQuery);
+</script>
+
+</body>
+</html>

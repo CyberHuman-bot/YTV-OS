@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Web Songs Music Player</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      background-color: #1f1f1f;
+      padding: 15px 20px;
+      box-sizing: border-box;
+    }
+
+    #top-bar a {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      background-color: #333;
+      padding: 8px 14px;
+      border-radius: 5px;
+    }
+
+    #top-bar a:hover {
+      background-color: #555;
+    }
+
+    .player {
+      margin-top: 50px;
+      text-align: center;
+      width: 320px;
+    }
+
+    .track-name {
+      font-size: 20px;
+      margin: 15px 0 10px;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 20px;
+    }
+
+    audio {
+      width: 100%;
+      outline: none;
+      border-radius: 5px;
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="top-bar">
+    <a href="home.html">Back to Home</a>
+  </div>
+
+  <div class="player">
+    <h1>🎵 Web Songs Player</h1>
+
+    <select id="song-select">
+      <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">SoundHelix Song 1</option>
+      <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3">SoundHelix Song 2</option>
+      <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">SoundHelix Song 3</option>
+      <option value="https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3">Example MP3 700KB</option>
+    </select>
+
+    <div class="track-name" id="track-name">SoundHelix Song 1</div>
+
+    <audio id="audio-player" controls>
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+
+  <script>
+    const select = document.getElementById('song-select');
+    const audio = document.getElementById('audio-player');
+    const trackName = document.getElementById('track-name');
+
+    select.addEventListener('change', () => {
+      const url = select.value;
+      const name = select.options[select.selectedIndex].text;
+      audio.src = url;
+      audio.play();
+      trackName.textContent = name;
+    });
+  </script>
+
+</body>
+</html>
